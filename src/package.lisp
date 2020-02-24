@@ -8,12 +8,4 @@
            #:decompress
            #:decompress-from-octets
            #:compress
-           #:compress-to-octets
-
-           #:+flag-bottomup+
-           #:+flag-fast-upsample+
-           #:+flag-norealloc+
-           #:+flag-fast-dct+
-           #:+flag-accurate-dct+
-           #:+flag-stop-on-warning+
-           #:+flag-progressive+))
+           #:compress-to-octets))

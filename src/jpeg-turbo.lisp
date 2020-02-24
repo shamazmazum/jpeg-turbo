@@ -108,7 +108,8 @@ reads compressed image directly from file with the name @c(filename)."
                                &key
                                  (width  0)
                                  (height 0)
-                                 (pixel-format :rgb))
+                                 (pixel-format :rgb)
+                                 flags)
   "Decompress a jpeg image. @c(handle) is a decompressor handle
 created with @c(with-decompressor). @c(array) is a simple array of
 @c((unsigned-byte 8)) values containing a compressed image. If
@@ -120,7 +121,7 @@ value in the same manner as @c(cl-jpeg) does."
   (declare (type (simple-array (unsigned-byte 8)) array)
            (type unsigned-byte width height))
   (multiple-value-bind (orig-width orig-height)
-      (decompress-header handle array)
+      (decompress-header-from-octets handle array)
     (setq width  (if (zerop width)  orig-width  width)
           height (if (zerop height) orig-height height)))
   (let ((decoded-array
@@ -138,17 +139,24 @@ value in the same manner as @c(cl-jpeg) does."
                                 :int 0
                                 :int height
                                 pixel-format pixel-format
-                                :int +flag-norealloc+
+                                ;; SBCL reports about dead code
+                                ;; here. This is OK, see
+                                ;; macroexpansion of
+                                ;; FOREIGN-FUNCALL (it is a macro)
+                                jpeg-turbo-flags (cons :no-realloc flags)
                                 :int)))
           (if (zerop code)
-              decoded-array
+              (values
+               decoded-array
+               width height)
               (error 'jpeg-error :error-string (last-error handle))))))))
 
 (defun decompress (handle filename
                    &key
                      (width  0)
                      (height 0)
-                     (pixel-format :rgb))
+                     (pixel-format :rgb)
+                     flags)
   "Decompress an image directly from file with the name
 @c(filename). See @c(decompress-from-octets) for more info"
   (with-open-file (input
@@ -160,7 +168,8 @@ value in the same manner as @c(cl-jpeg) does."
       (decompress-from-octets handle array
                               :width width
                               :height height
-                              :pixel-format pixel-format))))
+                              :pixel-format pixel-format
+                              :flags flags))))
 
 (defun init-compress% ()
   "Initialize jpeg compressor returning a handle to it. The handle
@@ -189,7 +198,8 @@ compressor handle @c(handle). The handle is safely freed after use."
                            width height pixel-format
                            &key
                              (quality 90)
-                             (subsamp :s-444))
+                             (subsamp :s-444)
+                             flags)
   "Compress an image to jpeg format. @c(handle) is a compressor handle
 created with @c(with-compressor). @c(array) is a simple array of
 @c((unsigned-byte 8)) values."
@@ -214,7 +224,11 @@ created with @c(with-compressor). @c(array) is a simple array of
                                        :pointer output-size
                                        subsamp subsamp
                                        :int quality
-                                       :int +flag-norealloc+
+                                       ;; SBCL reports about dead code
+                                       ;; here. This is OK, see
+                                       ;; macroexpansion of
+                                       ;; FOREIGN-FUNCALL (it is a macro)
+                                       jpeg-turbo-flags (cons :no-realloc flags)
                                        :int)))
             (if (zerop code)
                 (subseq output 0 (mem-aref output-size :ulong))
@@ -224,7 +238,8 @@ created with @c(with-compressor). @c(array) is a simple array of
                  width height pixel-format
                  &key
                    (quality 90)
-                   (subsamp :s-444))
+                   (subsamp :s-444)
+                   flags)
   "Compress an image to jpeg format and write it to file with the name
 @c(filename). See @c(compress-to-octets) for more info."
   (with-open-file (output filename
@@ -235,5 +250,6 @@ created with @c(with-compressor). @c(array) is a simple array of
      (compress-to-octets handle array
                          width height pixel-format
                          :quality quality
-                         :subsamp subsamp)
+                         :subsamp subsamp
+                         :flags flags)
      output)))
