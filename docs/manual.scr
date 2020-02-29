@@ -1,0 +1,204 @@
+@begin[ref=index](section)
+   @title(Overview)
+   @c(jpeg-turbo) is a wrapper for @c(libjpeg-turbo) library which allow
+   compression, decompression and transformation of jpeg images.
+@end(section)
+
+@begin[ref=subsamp](section)
+   @title(Subsampling)
+   Quote from @c(libjpeg-turbo) header:
+   @begin[lang=c](code)
+   /**
+    * Chrominance subsampling options.
+    * When pixels are converted from RGB to YCbCr [...] or from CMYK
+    * to YCCK [...] as part of the JPEG compression process, some of
+    * the Cb and Cr (chrominance) components can be discarded or averaged together
+    * to produce a smaller image with little perceptible loss of image clarity
+    * (the human eye is more sensitive to small changes in brightness than to
+    * small changes in color.)  This is called "chrominance subsampling".
+    */
+   @end(code)
+   @c(jpeg-turbo) wrapper supports all subsampling modes supported by
+   @c(libjpeg-turbo). The complete list is here (with description from
+   @c(libjpeg-turbo) header):
+   @begin(list)
+      @item(@c(:s-444) — 4:4:4 chrominance subsampling (no chrominance
+   subsampling).  The JPEG or YUV image will contain one chrominance component
+   for every pixel in the source image.)
+      @item(@c(:s-422) — 4:2:2 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 2x1 block of pixels in the
+   source image.)
+      @item(@c(:s-420) — 4:2:0 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 2x2 block of pixels in the
+   source image.)
+      @item(@c(:s-gray) — Grayscale.  The JPEG or YUV image will contain no
+   chrominance components.)
+      @item(@c(:s-440) — 4:4:0 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 1x2 block of pixels in the
+   source image. @b(NB): 4:4:0 subsampling is not fully accelerated in
+   @c(libjpeg-turbo).)
+      @item(@c(:s-411) — 4:1:1 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 4x1 block of pixels in the
+   source image. JPEG images compressed with 4:1:1 subsampling will be almost
+   exactly the same size as those compressed with 4:2:0 subsampling, and in the
+   aggregate, both subsampling methods produce approximately the same perceptual
+   quality.  However, 4:1:1 is better able to reproduce sharp horizontal
+   features. @b(NB): 4:1:1 subsampling is not fully accelerated in
+   @c(libjpeg-turbo).)
+   @end(list)
+@end(section)
+
+@begin[ref=pf](section)
+   @title(Pixel format)
+   All pixel formats supported by @c(libjpeg-turbo) are supported by this
+   wrapper. The complete list is here:
+   @begin(list)
+      @item(@c(:rgb) — Decompressed image contains 3-byte pixels. Each pixel
+   contains red, green and blue components.)
+      @item(@c(:bgr) — Decompressed image contains 3-byte pixels. Each pixel
+   contains blue, green and red components.)
+      @item(@c(:rgbx) — Decompressed image contains 4-byte pixels. Each pixel
+   contains red, green, blue components and a value @c(X) which is ignored.)
+      @item(@c(:xbgr) — Decompressed image contains 4-byte pixels. Each pixel
+   contains a value @c(X) which is ignored and blue, green and red components.)
+      @item(@c(:gray) — Decompressed image contains 1-byte pixels containing
+   grayscale component.)
+      @item(@c(:rgba) — Decompressed image contains 4-byte pixels. Each pixel
+   contains red, green, blue and alpha components.)
+      @item(@c(:bgra) — Decompressed image contains 4-byte pixels. Each pixel
+   contains blue, green, red and alpha components.)
+      @item(@c(:abgr) — Decompressed image contains 4-byte pixels. Each pixel
+   contains alpha, blue, green and red components.)
+      @item(@c(:argb) — Decompressed image contains 4-byte pixels. Each pixel
+   contains alpha, red, green and blue components.)
+      @item(@c(:cmyk) — Decompressed image contains 4-byte pixels. Each pixel
+   contains cyan, magneta, yellow and black components.)
+   @end(list)
+@end(section)
+
+@begin[ref=cs](section)
+   @title(Colorspaces)
+   All colorspaces supported by @c(libjpeg-turbo) are present here (descriptions
+   are taken from @c(libjpeg-turbo) header):
+   @begin(list)
+      @item(@c(:rgb) —  RGB colorspace.  When compressing the JPEG image, the R,
+   G, and B components in the source image are reordered into image planes, but
+   no colorspace conversion or subsampling is performed.  RGB JPEG images can be
+   decompressed to any of the extended RGB pixel formats or grayscale, but they
+   cannot be decompressed to YUV images.)
+      @item(@c(:ycbcr) — YCbCr colorspace.  YCbCr is not an absolute colorspace
+   but rather a mathematical transformation of RGB designed solely for storage
+   and transmission.  YCbCr images must be converted to RGB before they can
+   actually be displayed.  In the YCbCr colorspace, the Y (luminance) component
+   represents the black & white portion of the original image, and the Cb and Cr
+   (chrominance) components represent the color portion of the original image.
+   Originally, the analog equivalent of this transformation allowed the same
+   signal to drive both black & white and color televisions, but JPEG images use
+   YCbCr primarily because it allows the color data to be optionally subsampled
+   for the purposes of reducing bandwidth or disk space.  YCbCr is the most
+   common JPEG colorspace, and YCbCr JPEG images can be compressed from and
+   decompressed to any of the extended RGB pixel formats or grayscale, or they
+   can be decompressed to YUV planar images.)
+      @item(@c(:gray) — Grayscale colorspace.  The JPEG image retains only the
+   luminance data (Y component), and any color data from the source image is
+   discarded. Grayscale JPEG images can be compressed from and decompressed to
+   any of the extended RGB pixel formats or grayscale, or they can be
+   decompressed to YUV planar images.)
+      @item(@c(:cmyk) — CMYK colorspace.  When compressing the JPEG image, the
+   C, M, Y, and K components in the source image are reordered into image
+   planes, but no colorspace conversion or subsampling is performed.  CMYK JPEG
+   images can only be decompressed to CMYK pixels.)
+      @item(@c(:ycck) — YCCK colorspace. YCCK (AKA "YCbCrK") is not an absolute
+   colorspace but rather a mathematical transformation of CMYK designed solely
+   for storage and transmission.  It is to CMYK as YCbCr is to RGB.  CMYK pixels
+   can be reversibly transformed into YCCK, and as with YCbCr, the chrominance
+   components in the YCCK pixels can be subsampled without incurring major
+   perceptual loss.  YCCK JPEG images can only be compressed from and
+   decompressed to CMYK pixels.)
+   @end(list)
+@end(section)
+
+@begin[ref=flags](section)
+   @title(Flags)
+   All flags supported by @c(libjpeg-turbo) are present here (descriptions
+   are taken from @c(libjpeg-turbo) header). When you need to pass flags to any
+   function in this wrapper use a list containing the following symbols (the
+   order does not matter):
+   @begin(list)
+      @item(@c(:bottomup) — The uncompressed source/destination image is stored
+   in bottom-up (Windows, OpenGL) order, not top-down (X11) order.)
+      @item(@c(:fast-upsample) —  When decompressing an image that was
+   compressed using chrominance subsampling, use the fastest chrominance
+   upsampling algorithm available in the underlying codec.  The default is to
+   use smooth upsampling, which creates a smooth transition between neighboring
+   chrominance components in order to reduce upsampling artifacts in the
+   decompressed image.)
+      @item(@c(:fast-dct) —  Use the fastest DCT/IDCT algorithm available in the
+   underlying codec.  The default if this flag is not specified is
+   implementation-specific. For example, the implementation of TurboJPEG for
+   libjpeg[-turbo] uses the fast algorithm by default when compressing, because
+   this has been shown to have only a very slight effect on accuracy, but it
+   uses the accurate algorithm when decompressing, because this has been shown
+   to have a larger effect.)
+      @item(@c(:accurate-dct) — Use the most accurate DCT/IDCT algorithm
+   available in the underlying codec. The default if this flag is not specified
+   is implementation-specific.  For example, the implementation of TurboJPEG for
+   libjpeg[-turbo] uses the fast algorithm by default when compressing, because
+   this has been shown to have only a very slight effect on accuracy, but it
+   uses the accurate algorithm when decompressing, because this has been shown
+   to have a larger effect.)
+      @item(@c(:stop-on-warning) —  Immediately discontinue the current
+   compression/decompression/transform operation if the underlying codec throws
+   a warning (non-fatal error).  The default behavior is to allow the operation
+   to complete unless a fatal error is encountered.)
+      @item(@c(:progressive) —  Use progressive entropy coding in JPEG images
+   generated by the compression and transform functions.  Progressive entropy
+   coding will generally improve compression relative to baseline entropy coding
+   (the default), but it will reduce compression and decompression performance
+   considerably.)
+   @end(list)
+@end(section)
+
+@begin(section)
+   @title(API)
+   To compress an image you need to create a compressor object using
+   @c(with-compressor) macro and then call @c(compress-to-octets) function
+   supplying an array of pixels you want to become a jpeg image. The result is
+   an array of octets representing the compressed image. You can write the
+   result directly to file using @c(compress) instead. This example creates an
+   image with dimensions 200x300 filled with red color:
+   @begin[lang=lisp](code)
+   (let* ((width 200)
+       (height 300)
+       (array (make-array (* 3 width height)
+                          :element-type '(unsigned-byte 8))))
+     (loop for i below (length array) by 3 do
+         (setf (aref array i) 255))
+     (jpeg-turbo:with-compressor (handle)
+       (jpeg-turbo:compress handle "~/test.jpg" array width height :rgb)))
+    @end(code)
+    @cl:with-package[name="jpeg-turbo"](
+       @cl:doc(macro with-compressor)
+       @cl:doc(function compress-to-octets)
+       @cl:doc(function compress)
+    )
+
+    Decompression is handled in the similar way: you create a decompressor
+    object using @c(:with-decompressor) and a function
+    @c(decompress-from-octets) (when you decompress from array of octets) or
+    @c(decompress) (when you decompress from file). Also you can decompress the
+    header of an image only (see below).
+    @cl:with-package[name="jpeg-turbo"](
+       @cl:doc(macro with-decompressor)
+       @cl:doc(function decompress-from-octets)
+       @cl:doc(function decompress)
+       @cl:doc(function decompress-header-from-octets)
+       @cl:doc(function decompress-header)
+    )
+
+    In the case of an error all these functions signal @c(jpeg-error)
+    condition.
+    @cl:with-package[name="jpeg-turbo"](
+       @cl:doc(condition jpeg-error)
+    )
+@end(section)

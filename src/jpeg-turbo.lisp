@@ -2,6 +2,7 @@
 
 (define-condition jpeg-error (error)
   ((error-string :initarg :error-string
+                 :type string
                  :reader jpeg-error-string))
   (:report (lambda (c s)
              (format s "Turbo-JPEG error: ~a"
@@ -63,8 +64,8 @@ decompressor handle @c(handle). The handle is safely freed after use."
 @begin(enum)
     @item(Width of an image.)
     @item(Height of an image.)
-    @item(Chroma subsampling.)
-    @item(Colorspace.)
+    @item(Chroma subsampling. See @ref[id=subsamp](subsampling) section.)
+    @item(Colorspace. See @ref[id=cs](colorspaces) section.)
 @end(enum)"
   (declare (type (simple-array (unsigned-byte 8)) array))
   (with-foreign-objects ((width      :int 1)
@@ -115,7 +116,10 @@ created with @c(with-decompressor). @c(array) is a simple array of
 @c((unsigned-byte 8)) values containing a compressed image. If
 @c(width), @c(height) or @c(pixel-format) is specified,
 @c(libjpeg-turbo) converts the resulting image to these new
-specifications.
+specifications. For the values of @c(pixel-format) see the section
+@ref[id=pf](pixel formats). For more information about @c(flags) see
+the section @ref[id=flags](flags).
+
 Return a decompressed image as a simple-array of @c((unsigned-byte 8))
 value in the same manner as @c(cl-jpeg) does."
   (declare (type (simple-array (unsigned-byte 8)) array)
@@ -202,7 +206,12 @@ compressor handle @c(handle). The handle is safely freed after use."
                              flags)
   "Compress an image to jpeg format. @c(handle) is a compressor handle
 created with @c(with-compressor). @c(array) is a simple array of
-@c((unsigned-byte 8)) values."
+@c((unsigned-byte 8)) values containing pixel data. Values of
+@c(pixel-format) described in section @ref[id=pf](pixel
+formats). @c(quality) is an integer from 1 to 100. Higher values mean
+better quality. @c(subsamp) is described in
+@ref[id=subsamp](subsampling) section and @c(flags) in
+@ref[id=flags](flags) section."
   (declare (type (simple-array (unsigned-byte 8)) array)
            (type unsigned-byte width height)
            (type (integer 1 100) quality))
