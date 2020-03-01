@@ -2,6 +2,8 @@ dist: bionic
 language: common-lisp
 
 env:
+  global:
+    secure: "IkhiPLdMfDvwe7hUl5pGXxdfGDLnftXry73gRMK7rUR47kbYzBxi4yhJgCJjnhNHhg7X12IG68r1pUm60gGPCSozh3hJnrpYTb/OabBeOK207xSSqK8xHNe2ONVfHKzKB/P4/5m8IqdtLJqfee75+ylR8z7Psq6IDMbsCE7THm2UV9+3BvvRYOJM3pGa+GCDGoOXmzrpB/hieKbwdV3EzPIJE8ntWuNHQJ6RRWVPFZ9Ie90gUT8eekRX/KMj1etVq1eFc0GuPAiG4tTn6Mo/SCzsEHV3x2aSQ+9EMVUXRhsvp5ZUhg8r6qrBiRWgbTszBhGgER7pTGCovahxmVRnhtcw2Cy0ogpRFf5CVZXeG+m3or0+egNnLSN4mnIozV+bui4FjgBMQ5Wu1j6uDTFxdp5MoQp6YnpZTcrkazkVhXG8VjTXBneRG9ZicxjFJ7TrVpUkIn2tkiyKkYbJW8ymzvNkFP56+yeSyuMApmRWxrRgHuFCrc49W1d2+Doloyi8VBaDn2p0MCqOiO7JyX7GoW3/6GAr7CIhpIrOoh+375NswUAXDHoVUoO0JxCzsET4t/dNF0p0euC9ZAaFkPkXm5itlMUoIa5BCbmcDfJuOO4nhXuzd8+iV/eX0vq0uCT8498FmZDIeerHKAb0V5ppHtttlM0zyaNGrXFnBn6NCxU="
   matrix:
     - LISP=sbcl
 # This configuration fails
@@ -22,3 +24,13 @@ install:
 script:
   - cl -l cffi -f $TRAVIS_BUILD_DIR/tests/travis.lisp
   - cl -l codex -e '(codex:document :jpeg-turbo :skip-undocumented t)'
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: "$GITHUB_TOKEN"
+  keep_history: true
+  local_dir: "$TRAVIS_BUILD_DIR/docs/build/jpeg-turbo/html"
+  edge: true
+  on:
+    branch: master
