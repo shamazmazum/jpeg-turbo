@@ -184,7 +184,7 @@
     )
 
     Decompression is handled in the similar way: you create a decompressor
-    object using @c(:with-decompressor) and a function
+    object using @c(:with-decompressor) and use a function
     @c(decompress-from-octets) (when you decompress from array of octets) or
     @c(decompress) (when you decompress from file). Also you can decompress the
     header of an image only (see below).
