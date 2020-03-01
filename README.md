@@ -34,3 +34,6 @@ components of the pixel.
 
 ## Documentation
 Visit the [project page](http://shamazmazum.github.io/jpeg-turbo).
+
+## TODO
+Add transformation API
