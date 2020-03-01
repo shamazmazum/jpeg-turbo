@@ -1,0 +1,24 @@
+dist: bionic
+language: common-lisp
+
+env:
+  matrix:
+    - LISP=sbcl
+# This configuration fails
+#   - LISP=allegro
+    - LISP=ccl
+
+install:
+  - sudo apt-get install info install-info libturbojpeg0-dev
+  - if [ -x ./install.sh ] && head -2 ./install.sh | grep '^#cl-travis' > /dev/null;
+    then
+      ./install.sh;
+    else
+      curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | sh;
+    fi
+  - git clone --depth=1 git://github.com/shamazmazum/codex.git ~/lisp/codex
+  - cl -e '(ql-util:without-prompting (ql:add-to-init-file))'
+
+script:
+  - cl -l cffi -f $TRAVIS_BUILD_DIR/tests/travis.lisp
+  - cl -l codex -e '(codex:document :jpeg-turbo :skip-undocumented t)'
