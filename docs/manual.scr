@@ -190,6 +190,7 @@
     header of an image only (see below).
     @cl:with-package[name="jpeg-turbo"](
        @cl:doc(macro with-decompressor)
+       @cl:doc(function scaling-factors)
        @cl:doc(function decompress-from-octets)
        @cl:doc(function decompress)
        @cl:doc(function decompress-header-from-octets)

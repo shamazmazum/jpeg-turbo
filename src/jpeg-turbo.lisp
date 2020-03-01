@@ -1,5 +1,6 @@
 (in-package :jpeg-turbo)
 
+;; Conditions
 (define-condition jpeg-error (error)
   ((error-string :initarg :error-string
                  :type string
@@ -9,6 +10,13 @@
                      (jpeg-error-string c))))
   (:documentation "Errors returned by libjpeg-turbo"))
 
+;; Library
+(define-foreign-library jpeg-turbo
+  (:unix (:or "libturbojpeg.so.0" "libturbojpeg.so"))
+  (t (:default "libturbojpeg")))
+(use-foreign-library jpeg-turbo)
+
+;; Pixel sizes
 (defparameter *pixel-sizes*
   '((:rgb  . 3)
     (:bgr  . 3)
@@ -23,13 +31,15 @@
     (:cmyk . 4))
   "Size of a pixel in bytes for each pixel format")
 
+(defun pixel-size (pixel-format)
+  (or
+   (cdr (assoc pixel-format *pixel-sizes*))
+   (error 'jpeg-error :error-string "Wrong pixel format")))
+
+
+;; Handlers
 (defctype tj-handle :pointer
   "Handle for libjpeg-turbo compressor, decompressor or transformer")
-
-(define-foreign-library jpeg-turbo
-  (:unix (:or "libturbojpeg.so.0" "libturbojpeg.so"))
-  (t (:default "libturbojpeg")))
-(use-foreign-library jpeg-turbo)
 
 (defun init-decompress% ()
   "Initialize decompressor handle or signal an error. The handle must
@@ -45,9 +55,6 @@ case of an error instead of this function."
 (defcfun ("tjDestroy" destroy-handle%) :void
   (handle tj-handle))
 
-(defcfun ("tjGetErrorStr2" last-error) :string
-  (handle tj-handle))
-
 (defmacro with-decompressor ((handle) &body body)
   "Execute the macro's body in the lexical scope of created
 decompressor handle @c(handle). The handle is safely freed after use."
@@ -56,6 +63,57 @@ decompressor handle @c(handle). The handle is safely freed after use."
           (progn ,@body)
        (destroy-handle% ,handle))))
 
+(defun init-compress% ()
+  "Initialize jpeg compressor returning a handle to it. The handle
+must be freed with @c(destroy-handle%) after use. Use
+@c(with-compressor) macro instead of this function."
+  (let ((handle (foreign-funcall "tjInitCompress" tj-handle)))
+    (if (null-pointer-p handle)
+        (error 'jpeg-error
+               :error-string "Cannot create a compressor handle")
+        handle)))
+
+(defmacro with-compressor ((handle) &body body)
+  "Execute the macro's body in the lexical scope of created
+compressor handle @c(handle). The handle is safely freed after use."
+  `(let ((,handle (init-compress%)))
+     (unwind-protect
+          (progn ,@body)
+       (destroy-handle% ,handle))))
+
+;; Misc
+(defcfun ("tjGetErrorStr2" last-error) :string
+  (handle tj-handle))
+
+(defcfun ("tjBufSize" buf-size%) :ulong
+  (width  :int)
+  (height :int)
+  (subsamp subsamp))
+
+(defcstruct scaling-factor
+  (num   :int)
+  (denom :int))
+
+(defun scaling-factors ()
+  "Return scaling factors supported by @c(libjpeg-turbo)"
+  (with-foreign-object (num :int)
+    (let ((scaling-factors
+           (foreign-funcall "tjGetScalingFactors"
+                            :pointer num
+                            :pointer)))
+      (loop
+         for i below (mem-aref num :int)
+         for scaling-factor = (mem-aref scaling-factors
+                                        '(:struct scaling-factor)
+                                        i)
+         collect (/ (getf scaling-factor 'num)
+                    (getf scaling-factor 'denom))))))
+
+(defun scale (x scaling)
+  (ceiling
+   (* x scaling)))
+
+;; Decompression
 (defun decompress-header-from-octets (handle array)
   "Decompress header of an image. @c(handle) must be a handle to
   decompressor created with @c(with-decompressor). @c(array) must be a
@@ -100,65 +158,59 @@ reads compressed image directly from file with the name @c(filename)."
       (read-sequence array input)
       (decompress-header-from-octets handle array))))
 
-(defun pixel-size (pixel-format)
-  (or
-   (cdr (assoc pixel-format *pixel-sizes*))
-   (error 'jpeg-error :error-string "Wrong pixel format")))
-
 (defun decompress-from-octets (handle array
                                &key
-                                 (width  0)
-                                 (height 0)
+                                 (scaling-factor 1)
                                  (pixel-format :rgb)
                                  flags)
   "Decompress a jpeg image. @c(handle) is a decompressor handle
 created with @c(with-decompressor). @c(array) is a simple array of
 @c((unsigned-byte 8)) values containing a compressed image. If
-@c(width), @c(height) or @c(pixel-format) is specified,
-@c(libjpeg-turbo) converts the resulting image to these new
-specifications. For the values of @c(pixel-format) see the section
-@ref[id=pf](pixel formats). For more information about @c(flags) see
-the section @ref[id=flags](flags).
+@c(pixel-format) is specified, @c(libjpeg-turbo) converts output pixel
+format to a specified value. For the values of @c(pixel-format) see
+the section @ref[id=pf](pixel formats). For more information about
+@c(flags) see the section @ref[id=flags](flags). If @c(scaling-factor)
+is specified @c(librurbo-jpeg) will scale the output image to this
+scaling factor. Possible values are returned by @c(scaling-factors).
 
 Return a decompressed image as a simple-array of @c((unsigned-byte 8))
 value in the same manner as @c(cl-jpeg) does."
   (declare (type (simple-array (unsigned-byte 8)) array)
-           (type unsigned-byte width height))
-  (multiple-value-bind (orig-width orig-height)
+           (type rational scaling-factor))
+  (multiple-value-bind (width height)
       (decompress-header-from-octets handle array)
-    (setq width  (if (zerop width)  orig-width  width)
-          height (if (zerop height) orig-height height)))
-  (let ((decoded-array
-         (make-shareable-byte-vector
-          (* width height (pixel-size pixel-format)))))
-    (with-pointer-to-vector-data (array-ptr array)
-      (with-pointer-to-vector-data (decoded-ptr decoded-array)
-        (let ((code
-               (foreign-funcall "tjDecompress2"
-                                tj-handle handle
-                                :pointer array-ptr
-                                :ulong (length array)
-                                :pointer decoded-ptr
-                                :int width
-                                :int 0
-                                :int height
-                                pixel-format pixel-format
-                                ;; SBCL reports about dead code
-                                ;; here. This is OK, see
-                                ;; macroexpansion of
-                                ;; FOREIGN-FUNCALL (it is a macro)
-                                jpeg-turbo-flags (cons :no-realloc flags)
-                                :int)))
-          (if (zerop code)
-              (values
-               decoded-array
-               width height)
-              (error 'jpeg-error :error-string (last-error handle))))))))
+    (setq width  (scale width  scaling-factor)
+          height (scale height scaling-factor))
+    (let ((decoded-array
+           (make-shareable-byte-vector
+            (* width height (pixel-size pixel-format)))))
+      (with-pointer-to-vector-data (array-ptr array)
+        (with-pointer-to-vector-data (decoded-ptr decoded-array)
+          (let ((code
+                 (foreign-funcall "tjDecompress2"
+                                  tj-handle handle
+                                  :pointer array-ptr
+                                  :ulong (length array)
+                                  :pointer decoded-ptr
+                                  :int width
+                                  :int 0
+                                  :int height
+                                  pixel-format pixel-format
+                                  ;; SBCL reports about dead code
+                                  ;; here. This is OK, see
+                                  ;; macroexpansion of
+                                  ;; FOREIGN-FUNCALL (it is a macro)
+                                  jpeg-turbo-flags (cons :no-realloc flags)
+                                  :int)))
+            (if (zerop code)
+                (values
+                 decoded-array
+                 width height)
+                (error 'jpeg-error :error-string (last-error handle)))))))))
 
 (defun decompress (handle filename
                    &key
-                     (width  0)
-                     (height 0)
+                     (scaling-factor 1)
                      (pixel-format :rgb)
                      flags)
   "Decompress an image directly from file with the name
@@ -170,34 +222,11 @@ value in the same manner as @c(cl-jpeg) does."
                              :element-type '(unsigned-byte 8))))
       (read-sequence array input)
       (decompress-from-octets handle array
-                              :width width
-                              :height height
+                              :scaling-factor scaling-factor
                               :pixel-format pixel-format
                               :flags flags))))
 
-(defun init-compress% ()
-  "Initialize jpeg compressor returning a handle to it. The handle
-must be freed with @c(destroy-handle%) after use. Use
-@c(with-compressor) macro instead of this function."
-  (let ((handle (foreign-funcall "tjInitCompress" tj-handle)))
-    (if (null-pointer-p handle)
-        (error 'jpeg-error
-               :error-string "Cannot create a compressor handle")
-        handle)))
-
-(defmacro with-compressor ((handle) &body body)
-  "Execute the macro's body in the lexical scope of created
-compressor handle @c(handle). The handle is safely freed after use."
-  `(let ((,handle (init-compress%)))
-     (unwind-protect
-          (progn ,@body)
-       (destroy-handle% ,handle))))
-
-(defcfun ("tjBufSize" buf-size%) :ulong
-  (width  :int)
-  (height :int)
-  (subsamp subsamp))
-
+;; Compression
 (defun compress-to-octets (handle array
                            width height pixel-format
                            &key

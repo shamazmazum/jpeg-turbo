@@ -1,6 +1,7 @@
 (defpackage jpeg-turbo
   (:use #:cl #:cffi)
   (:export #:jpeg-error
+           #:scaling-factors
            #:with-decompressor
            #:with-compressor
            #:decompress-header
