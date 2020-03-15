@@ -34,7 +34,9 @@ components of the pixel.
 ~~~~~~~~
 
 ## Documentation
-Visit the [project page](http://shamazmazum.github.io/jpeg-turbo).
+Visit the [project page](http://shamazmazum.github.io/jpeg-turbo). If
+you want a local copy, run
+`(codex:document :jpeg-turbo :skip-undocumented t)`.
 
 ## TODO
 Add transformation API
