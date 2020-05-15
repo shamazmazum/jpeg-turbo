@@ -12,8 +12,10 @@
 
 ;; Library
 (define-foreign-library jpeg-turbo
+  (:os-macosx (:or "libturbojpeg.0.dylib" "libturbojpeg.dylib"))
   (:unix (:or "libturbojpeg.so.0" "libturbojpeg.so"))
-  (t (:default "libturbojpeg")))
+  (t (:default "libturbojpeg"))
+  )
 (use-foreign-library jpeg-turbo)
 
 ;; Pixel sizes

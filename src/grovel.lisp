@@ -1,6 +1,6 @@
 (in-package :jpeg-turbo)
 (include "turbojpeg.h")
-#+freebsd
+#+(or freebsd OS-MACOSX)
 (cc-flags "-I/usr/local/include")
 
 ;; Subsampling modes
