@@ -6,21 +6,14 @@ env:
     secure: "IkhiPLdMfDvwe7hUl5pGXxdfGDLnftXry73gRMK7rUR47kbYzBxi4yhJgCJjnhNHhg7X12IG68r1pUm60gGPCSozh3hJnrpYTb/OabBeOK207xSSqK8xHNe2ONVfHKzKB/P4/5m8IqdtLJqfee75+ylR8z7Psq6IDMbsCE7THm2UV9+3BvvRYOJM3pGa+GCDGoOXmzrpB/hieKbwdV3EzPIJE8ntWuNHQJ6RRWVPFZ9Ie90gUT8eekRX/KMj1etVq1eFc0GuPAiG4tTn6Mo/SCzsEHV3x2aSQ+9EMVUXRhsvp5ZUhg8r6qrBiRWgbTszBhGgER7pTGCovahxmVRnhtcw2Cy0ogpRFf5CVZXeG+m3or0+egNnLSN4mnIozV+bui4FjgBMQ5Wu1j6uDTFxdp5MoQp6YnpZTcrkazkVhXG8VjTXBneRG9ZicxjFJ7TrVpUkIn2tkiyKkYbJW8ymzvNkFP56+yeSyuMApmRWxrRgHuFCrc49W1d2+Doloyi8VBaDn2p0MCqOiO7JyX7GoW3/6GAr7CIhpIrOoh+375NswUAXDHoVUoO0JxCzsET4t/dNF0p0euC9ZAaFkPkXm5itlMUoIa5BCbmcDfJuOO4nhXuzd8+iV/eX0vq0uCT8498FmZDIeerHKAb0V5ppHtttlM0zyaNGrXFnBn6NCxU="
   matrix:
     - LISP=sbcl
-# This configuration fails
-#   - LISP=allegro
     - LISP=ccl
+    - LISP=ecl
 
 install:
   - sudo apt-get install info install-info libturbojpeg0-dev
-  - if [ -x ./install.sh ] && head -2 ./install.sh | grep '^#cl-travis' > /dev/null;
-    then
-      ./install.sh;
-    else
-      curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | sh;
-    fi
+  - curl -L https://raw.githubusercontent.com/lispci/cl-travis/master/install.sh | sh
   - git clone --depth=1 git://github.com/shamazmazum/codex.git ~/lisp/codex
   - git clone --depth=1 git://github.com/shamazmazum/docparser.git ~/lisp/docparser
-  - cl -e '(ql-util:without-prompting (ql:add-to-init-file))'
 
 script:
   - cl -l cffi -f $TRAVIS_BUILD_DIR/tests/travis.lisp
@@ -35,3 +28,4 @@ deploy:
   edge: true
   on:
     branch: master
+    condition: $LISP = sbcl
