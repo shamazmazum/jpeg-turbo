@@ -1,6 +1,6 @@
 jpeg-turbo
 ==========
-[![Build Status](https://travis-ci.com/shamazmazum/jpeg-turbo.svg?branch=master)](https://travis-ci.com/shamazmazum/jpeg-turbo)
+[![Build Status](https://api.cirrus-ci.com/github/shamazmazum/jpeg-turbo.svg)](https://cirrus-ci.com/github/shamazmazum/jpeg-turbo)
 
 **jpeg-turbo** is a Common Lisp wrapper for `libjpeg-turbo` library
 which provides TurboJPEG API for compressing and decompressing JPEG
