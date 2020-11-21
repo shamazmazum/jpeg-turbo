@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Colorspaces &ndash; jpeg-turbo
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="cs"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="cs"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="cs"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">jpeg-turbo » Colorspaces</h1>
+  <article id="article" data-section="cs">
+    <aside>
+      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="subsamp.html" data-node="subsamp">Subsampling</a></li><li><a href="pf.html" data-node="pf">Pixel format</a></li><li><a href="cs.html" data-node="cs">Colorspaces</a></li><li><a href="flags.html" data-node="flags">Flags</a></li><li><a href="api.html" data-node="api">API</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      
+   All colorspaces supported by <code>libjpeg-turbo</code> are present here (descriptions
+   are taken from <code>libjpeg-turbo</code> header):
+   <ul><li><code>:rgb</code> —  RGB colorspace.  When compressing the JPEG image, the R,
+   G, and B components in the source image are reordered into image planes, but
+   no colorspace conversion or subsampling is performed.  RGB JPEG images can be
+   decompressed to any of the extended RGB pixel formats or grayscale, but they
+   cannot be decompressed to YUV images.</li><li><code>:ycbcr</code> — YCbCr colorspace.  YCbCr is not an absolute colorspace
+   but rather a mathematical transformation of RGB designed solely for storage
+   and transmission.  YCbCr images must be converted to RGB before they can
+   actually be displayed.  In the YCbCr colorspace, the Y (luminance) component
+   represents the black &amp; white portion of the original image, and the Cb and Cr
+   (chrominance) components represent the color portion of the original image.
+   Originally, the analog equivalent of this transformation allowed the same
+   signal to drive both black &amp; white and color televisions, but JPEG images use
+   YCbCr primarily because it allows the color data to be optionally subsampled
+   for the purposes of reducing bandwidth or disk space.  YCbCr is the most
+   common JPEG colorspace, and YCbCr JPEG images can be compressed from and
+   decompressed to any of the extended RGB pixel formats or grayscale, or they
+   can be decompressed to YUV planar images.</li><li><code>:gray</code> — Grayscale colorspace.  The JPEG image retains only the
+   luminance data (Y component), and any color data from the source image is
+   discarded. Grayscale JPEG images can be compressed from and decompressed to
+   any of the extended RGB pixel formats or grayscale, or they can be
+   decompressed to YUV planar images.</li><li><code>:cmyk</code> — CMYK colorspace.  When compressing the JPEG image, the
+   C, M, Y, and K components in the source image are reordered into image
+   planes, but no colorspace conversion or subsampling is performed.  CMYK JPEG
+   images can only be decompressed to CMYK pixels.</li><li><code>:ycck</code> — YCCK colorspace. YCCK (AKA &quot;YCbCrK&quot;) is not an absolute
+   colorspace but rather a mathematical transformation of CMYK designed solely
+   for storage and transmission.  It is to CMYK as YCbCr is to RGB.  CMYK pixels
+   can be reversibly transformed into YCCK, and as with YCbCr, the chrominance
+   components in the YCCK pixels can be subsampled without incurring major
+   perceptual loss.  YCCK JPEG images can only be compressed from and
+   decompressed to CMYK pixels.</li></ul>
+
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>

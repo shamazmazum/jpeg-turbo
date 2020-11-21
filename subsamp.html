@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Subsampling &ndash; jpeg-turbo
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="subsamp"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="subsamp"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="subsamp"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">jpeg-turbo » Subsampling</h1>
+  <article id="article" data-section="subsamp">
+    <aside>
+      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="subsamp.html" data-node="subsamp">Subsampling</a></li><li><a href="pf.html" data-node="pf">Pixel format</a></li><li><a href="cs.html" data-node="cs">Colorspaces</a></li><li><a href="flags.html" data-node="flags">Flags</a></li><li><a href="api.html" data-node="api">API</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      
+   Quote from <code>libjpeg-turbo</code> header:
+   <pre><code class="c">   /**
+    * Chrominance subsampling options.
+    * When pixels are converted from RGB to YCbCr [...] or from CMYK
+    * to YCCK [...] as part of the JPEG compression process, some of
+    * the Cb and Cr (chrominance) components can be discarded or averaged together
+    * to produce a smaller image with little perceptible loss of image clarity
+    * (the human eye is more sensitive to small changes in brightness than to
+    * small changes in color.)  This is called &quot;chrominance subsampling&quot;.
+    */
+   </code></pre>
+   <code>jpeg-turbo</code> wrapper supports all subsampling modes supported by
+   <code>libjpeg-turbo</code>. The complete list is here (with description from
+   <code>libjpeg-turbo</code> header):
+   <ul><li><code>:s-444</code> — 4:4:4 chrominance subsampling (no chrominance
+   subsampling).  The JPEG or YUV image will contain one chrominance component
+   for every pixel in the source image.</li><li><code>:s-422</code> — 4:2:2 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 2x1 block of pixels in the
+   source image.</li><li><code>:s-420</code> — 4:2:0 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 2x2 block of pixels in the
+   source image.</li><li><code>:s-gray</code> — Grayscale.  The JPEG or YUV image will contain no
+   chrominance components.</li><li><code>:s-440</code> — 4:4:0 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 1x2 block of pixels in the
+   source image. <b>NB</b>: 4:4:0 subsampling is not fully accelerated in
+   <code>libjpeg-turbo</code>.</li><li><code>:s-411</code> — 4:1:1 chrominance subsampling. The JPEG or YUV image
+   will contain one chrominance component for every 4x1 block of pixels in the
+   source image. JPEG images compressed with 4:1:1 subsampling will be almost
+   exactly the same size as those compressed with 4:2:0 subsampling, and in the
+   aggregate, both subsampling methods produce approximately the same perceptual
+   quality.  However, 4:1:1 is better able to reproduce sharp horizontal
+   features. <b>NB</b>: 4:1:1 subsampling is not fully accelerated in
+   <code>libjpeg-turbo</code>.</li></ul>
+
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>

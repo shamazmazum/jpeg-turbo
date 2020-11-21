@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  API &ndash; jpeg-turbo
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="api"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="api"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="api"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">jpeg-turbo » API</h1>
+  <article id="article" data-section="api">
+    <aside>
+      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="subsamp.html" data-node="subsamp">Subsampling</a></li><li><a href="pf.html" data-node="pf">Pixel format</a></li><li><a href="cs.html" data-node="cs">Colorspaces</a></li><li><a href="flags.html" data-node="flags">Flags</a></li><li><a href="api.html" data-node="api">API</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      <p>
+   To compress an image you need to create a compressor object using
+   <code>with-compressor</code> macro and then call <code>compress-to-octets</code> function
+   supplying an array of pixels you want to become a jpeg image. The result is
+   an array of octets representing the compressed image. You can write the
+   result directly to file using <code>compress</code> instead. This example creates an
+   image with dimensions 200x300 filled with red color:
+   </p><pre><code class="lisp">(let* ((width 200)
+       (height 300)
+       (array (make-array (* 3 width height)
+                          :element-type '(unsigned-byte 8))))
+     (loop for i below (length array) by 3 do
+         (setf (aref array i) 255))
+     (jpeg-turbo:with-compressor (handle)
+       (jpeg-turbo:compress handle &quot;~/test.jpg&quot; array width height :rgb)))
+    </code></pre><p>
+    
+       <div class="codex-doc-node codex-operator codex-macro"><code class="codex-name">with-compressor</code><code class="codex-lambda-list">((handle) &amp;body body)</code><div class="codex-docstring">Execute the macro's body in the lexical scope of created
+compressor handle <code>handle</code>. The handle is safely freed after use.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">compress-to-octets</code><code class="codex-lambda-list">(handle array width height pixel-format &amp;key (quality 90) (subsamp s-444) flags)</code><div class="codex-docstring">Compress an image to jpeg format. <code>handle</code> is a compressor handle
+created with <code>with-compressor</code>. <code>array</code> is a simple array of
+<code>(unsigned-byte 8)</code> values containing pixel data. Values of
+<code>pixel-format</code> described in section <a id="pf" href="pf.html" data-node="pf">pixel
+formats</a>. <code>quality</code> is an integer from 1 to 100. Higher values mean
+better quality. <code>subsamp</code> is described in
+<a id="subsamp" href="subsamp.html" data-node="subsamp">subsampling</a> section and <code>flags</code> in
+<a id="flags" href="flags.html" data-node="flags">flags</a> section.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">compress</code><code class="codex-lambda-list">(handle filename array width height pixel-format &amp;key (quality 90) (subsamp s-444) flags)</code><div class="codex-docstring">Compress an image to jpeg format and write it to file with the name
+<code>filename</code>. See <code>compress-to-octets</code> for more info.</div></div>
+    </p><p>    Decompression is handled in the similar way: you create a decompressor
+    object using <code>:with-decompressor</code> and use a function
+    <code>decompress-from-octets</code>(when you decompress from array of octets) or
+    <code>decompress</code>(when you decompress from file). Also you can decompress the
+    header of an image only (see below).
+    
+       <div class="codex-doc-node codex-operator codex-macro"><code class="codex-name">with-decompressor</code><code class="codex-lambda-list">((handle) &amp;body body)</code><div class="codex-docstring">Execute the macro's body in the lexical scope of created
+decompressor handle <code>handle</code>. The handle is safely freed after use.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">scaling-factors</code><code class="codex-lambda-list">nil</code><div class="codex-docstring">Return scaling factors supported by <code>libjpeg-turbo</code></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">decompress-from-octets</code><code class="codex-lambda-list">(handle array &amp;key (scaling-factor 1) (pixel-format rgb) flags)</code><div class="codex-docstring"><p>Decompress a jpeg image. <code>handle</code> is a decompressor handle
+created with <code>with-decompressor</code>. <code>array</code> is a simple array of
+<code>(unsigned-byte 8)</code> values containing a compressed image. If
+<code>pixel-format</code> is specified, <code>libjpeg-turbo</code> converts output pixel
+format to a specified value. For the values of <code>pixel-format</code> see
+the section <a id="pf" href="pf.html" data-node="pf">pixel formats</a>. For more information about
+<code>flags</code> see the section <a id="flags" href="flags.html" data-node="flags">flags</a>. If <code>scaling-factor</code>
+is specified <code>librurbo-jpeg</code> will scale the output image to this
+scaling factor. Possible values are returned by <code>scaling-factors</code>.</p><p>Return a decompressed image as a simple-array of <code>(unsigned-byte 8)</code>
+value in the same manner as <code>cl-jpeg</code> does.</p></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">decompress</code><code class="codex-lambda-list">(handle filename &amp;key (scaling-factor 1) (pixel-format rgb) flags)</code><div class="codex-docstring">Decompress an image directly from file with the name
+<code>filename</code>. See <code>decompress-from-octets</code> for more info</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">decompress-header-from-octets</code><code class="codex-lambda-list">(handle array)</code><div class="codex-docstring">Decompress header of an image. <code>handle</code> must be a handle to
+  decompressor created with <code>with-decompressor</code>. <code>array</code> must be a
+  simple array of <code>(unsigned-byte 8)</code> values containing compressed
+  jpeg image. Function returns four values:
+<ol><li>Width of an image.</li><li>Height of an image.</li><li>Chroma subsampling. See <a id="subsamp" href="subsamp.html" data-node="subsamp">subsampling</a> section.</li><li>Colorspace. See <a id="cs" href="cs.html" data-node="cs">colorspaces</a> section.</li></ol></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">decompress-header</code><code class="codex-lambda-list">(handle filename)</code><div class="codex-docstring">This is function is like <code>decompress-header-from-octets</code> but
+reads compressed image directly from file with the name <code>filename</code>.</div></div>
+    </p><p>    In the case of an error all these functions signal <code>jpeg-error</code>
+    condition.
+    
+       <div class="codex-doc-node codex-record codex-condition"><code class="codex-name">jpeg-error</code><div class="codex-docstring">Errors returned by libjpeg-turbo</div><ul class="codex-slot-list"><li class="codex-slot codex-class-slot"><code class="codex-name">error-string</code><div class="codex-docstring"></div><div class="codex-class-struct-slot-option-node"><table class="codex-class-struct-slot-option-table"><tr class="codex-class-struct-slot-option-row"><td class="codex-class-struct-slot-option-header-cell">Option</td><td class="codex-class-struct-slot-option-header-cell">Value</td></tr><tr class="codex-class-struct-slot-option-row"><td class="codex-class-struct-slot-option-label-cell">Allocation:</td><td class="codex-class-struct-slot-option-value-cell codex-class-struct-slot-option-symbol-list-cell">instance</td></tr><tr class="codex-class-struct-slot-option-row"><td class="codex-class-struct-slot-option-label-cell">Type:</td><td class="codex-class-struct-slot-option-value-cell codex-class-struct-slot-option-symbol-list-cell"><code class="codex-class-struct-slot-symbol-list">string</code></td></tr><tr class="codex-class-struct-slot-option-row"><td class="codex-class-struct-slot-option-label-cell">Initarg:</td><td class="codex-class-struct-slot-option-value-cell codex-class-struct-slot-option-symbol-list-cell"><code class="codex-class-struct-slot-symbol-list">:error-string</code></td></tr><tr class="codex-class-struct-slot-option-row"><td class="codex-class-struct-slot-option-label-cell">Readers:</td><td class="codex-class-struct-slot-option-value-cell codex-class-struct-slot-option-symbol-list-cell"><code class="codex-class-struct-slot-symbol-list">(jpeg-error-string)</code></td></tr></table></div></li></ul></div>
+    
+</p>
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>
