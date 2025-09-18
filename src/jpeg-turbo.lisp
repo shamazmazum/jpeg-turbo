@@ -155,8 +155,7 @@ compressor handle @c(handle). The handle is safely freed after use."
 reads compressed image directly from file with the name @c(filename)."
   (with-open-file (input filename
                    :element-type '(unsigned-byte 8))
-    (let ((array (make-array (file-length input)
-                             :element-type '(unsigned-byte 8))))
+    (let ((array (make-shareable-byte-vector (file-length input))))
       (read-sequence array input)
       (decompress-header-from-octets handle array))))
 
@@ -220,8 +219,7 @@ value in the same manner as @c(cl-jpeg) does."
   (with-open-file (input
                    filename
                    :element-type '(unsigned-byte 8))
-    (let ((array (make-array (file-length input)
-                             :element-type '(unsigned-byte 8))))
+    (let ((array (make-shareable-byte-vector (file-length input))))
       (read-sequence array input)
       (decompress-from-octets handle array
                               :scaling-factor scaling-factor

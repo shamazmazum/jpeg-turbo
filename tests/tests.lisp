@@ -13,9 +13,8 @@
 (defconstant +width+ 800)
 (defconstant +height+ 600)
 (defun compress (subsamp bps pf)
-  (let((array (make-array (* bps +width+ +height+)
-                          :element-type '(unsigned-byte 8)
-                          :initial-element 0)))
+  (let ((array (cffi:make-shareable-byte-vector (* bps +width+ +height+))))
+    (fill array 0)
     (jpeg-turbo:with-compressor (handle)
       (jpeg-turbo:compress-to-octets
        handle array
