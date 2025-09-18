@@ -1,7 +1,7 @@
 (in-package :jpeg-turbo)
 (include "turbojpeg.h")
 #+(or freebsd OS-MACOSX)
-(cc-flags "-I/usr/local/include")
+(cc-flags "-I/usr/local/include" "-I/opt/homebrew/include")
 
 ;; Subsampling modes
 (cenum subsamp
